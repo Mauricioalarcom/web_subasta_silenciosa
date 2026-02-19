@@ -44,6 +44,7 @@ export default apiClient;
 
 // Funciones de API para autenticación
 export const authAPI = {
+  // Métodos específicos de autenticación
   login: (email: string, password: string) => 
     apiClient.post('/api/admin/auth/login', { email, password }),
   
@@ -55,4 +56,11 @@ export const authAPI = {
   
   verifySession: () => 
     apiClient.get('/api/admin/auth/verify'),
+  
+  // Métodos genéricos para otros endpoints
+  get: (url: string, config?: any) => apiClient.get(url, config),
+  post: (url: string, data?: any, config?: any) => apiClient.post(url, data, config),
+  put: (url: string, data?: any, config?: any) => apiClient.put(url, data, config),
+  delete: (url: string, config?: any) => apiClient.delete(url, config),
+  patch: (url: string, data?: any, config?: any) => apiClient.patch(url, data, config),
 };

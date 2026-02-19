@@ -3,17 +3,22 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const config = require('./config');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
+const eventoRoutes = require('./routes/eventoRoutes');
 
 const app = express();
 
 // Middlewares de seguridad
 app.use(helmet());
 app.use(cors(config.cors));
+
+// Servir archivos estáticos (uploads)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middlewares de parseo
 app.use(express.json());
@@ -37,6 +42,7 @@ app.get('/health', (req, res) => {
 
 // Rutas de la API
 app.use('/api/admin/auth', authRoutes);
+app.use('/api/admin/evento', eventoRoutes);
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
@@ -47,7 +53,8 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       admin: {
-        auth: '/api/admin/auth'
+        auth: '/api/admin/auth',
+        evento: '/api/admin/evento'
       }
     }
   });
