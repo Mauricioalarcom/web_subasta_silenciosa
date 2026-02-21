@@ -16,6 +16,7 @@ const eventoRoutes = require('./routes/eventoRoutes');
 const obraRoutes = require('./routes/obraRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const ofertaRoutes = require('./routes/ofertaRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -65,6 +66,7 @@ app.use('/api/admin/auth', authRoutes);
 app.use('/api/admin/evento', eventoRoutes);
 app.use('/api/admin/obras', obraRoutes);
 app.use('/api/admin/pagos', pagoRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/ofertas', ofertaRoutes);
 
 // Ruta de bienvenida

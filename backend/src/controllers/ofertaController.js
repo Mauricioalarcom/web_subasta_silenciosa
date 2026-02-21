@@ -1,5 +1,5 @@
 const db = require('../database/db');
-const { broadcastOferta, notifyOutbid } = require('../services/websocketService');
+const { broadcastOferta, notifyOutbid, notifyDashboardNewOferta } = require('../services/websocketService');
 
 /**
  * Crear una nueva oferta
@@ -220,6 +220,14 @@ exports.createOferta = async (req, res) => {
       fecha_cierre: tiempoExtendido ? nuevaFechaCierre : fechaCierre,
       tiempo_extendido: tiempoExtendido,
       compra_inmediata: es_compra_inmediata
+    });
+
+    // Notificar al dashboard de admins
+    notifyDashboardNewOferta({
+      obra_id: obra_id,
+      obra_nombre: obra.nombre,
+      usuario_nombre: req.user.nombre,
+      monto: parseFloat(monto)
     });
 
     // 13. Notificar al postor anterior que fue superado (si existe)

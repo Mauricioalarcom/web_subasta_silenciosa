@@ -24,6 +24,7 @@ const initializeWebSocket = (socketIO) => {
         const decoded = jwt.verify(token, config.jwt.secret);
         userId = decoded.id;
         socket.userId = userId;
+        socket.isAdmin = decoded.rol === 'ADMIN';
 
         // Guardar socket del usuario
         if (!userSockets.has(userId)) {
@@ -33,6 +34,12 @@ const initializeWebSocket = (socketIO) => {
 
         // Unirse a room personal del usuario
         socket.join(`user:${userId}`);
+        
+        // Si es admin, unirse al room de admins
+        if (socket.isAdmin) {
+          socket.join('admin');
+          console.log(`👑 Admin conectado: ${userId} (socket: ${socket.id})`);
+        }
         
         console.log(`✅ Usuario autenticado: ${userId} (socket: ${socket.id})`);
       } catch (error) {
@@ -335,6 +342,36 @@ const getTotalConnected = () => {
   return io.sockets.sockets.size;
 };
 
+/**
+ * Notificar actualización de dashboard a admins
+ */
+const notifyDashboardUpdate = (data) => {
+  if (!io) return;
+  
+  // Emitir a todos los admins conectados (room 'admin')
+  io.to('admin').emit('dashboard_update', {
+    ...data,
+    timestamp: new Date().toISOString()
+  });
+  
+  console.log('📊 Dashboard update enviado a admins');
+};
+
+/**
+ * Notificar nueva oferta al dashboard
+ */
+const notifyDashboardNewOferta = (ofertaData) => {
+  if (!io) return;
+  
+  io.to('admin').emit('dashboard_nueva_oferta', {
+    obra_id: ofertaData.obra_id,
+    obra_nombre: ofertaData.obra_nombre,
+    usuario_nombre: ofertaData.usuario_nombre,
+    monto: ofertaData.monto,
+    timestamp: new Date().toISOString()
+  });
+};
+
 module.exports = {
   initializeWebSocket,
   broadcastOferta,
@@ -343,5 +380,7 @@ module.exports = {
   notifyExtensionTiempo,
   getConnectedUsers,
   getTotalConnected,
-  getObraEstado
+  getObraEstado,
+  notifyDashboardUpdate,
+  notifyDashboardNewOferta
 };
