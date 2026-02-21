@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -6,12 +8,30 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const config = require('./config');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { initializeWebSocket } = require('./services/websocketService');
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
+const obraRoutes = require('./routes/obraRoutes');
+const pagoRoutes = require('./routes/pagoRoutes');
+const ofertaRoutes = require('./routes/ofertaRoutes');
 
 const app = express();
+const server = http.createServer(app);
+
+// Configurar Socket.io con CORS
+const io = new Server(server, {
+  cors: {
+    origin: config.cors.origin,
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']
+});
+
+// Inicializar servicio de WebSocket
+initializeWebSocket(io);
 
 // Middlewares de seguridad
 app.use(helmet());
@@ -43,6 +63,9 @@ app.get('/health', (req, res) => {
 // Rutas de la API
 app.use('/api/admin/auth', authRoutes);
 app.use('/api/admin/evento', eventoRoutes);
+app.use('/api/admin/obras', obraRoutes);
+app.use('/api/admin/pagos', pagoRoutes);
+app.use('/api/ofertas', ofertaRoutes);
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
@@ -50,11 +73,20 @@ app.get('/', (req, res) => {
     success: true,
     message: 'API de Subasta Silenciosa',
     version: '1.0.0',
+    websocket: {
+      enabled: true,
+      path: '/socket.io'
+    },
     endpoints: {
       health: '/health',
       admin: {
         auth: '/api/admin/auth',
-        evento: '/api/admin/evento'
+        evento: '/api/admin/evento',
+        obras: '/api/admin/obras',
+        pagos: '/api/admin/pagos'
+      },
+      public: {
+        ofertas: '/api/ofertas'
       }
     }
   });
@@ -69,16 +101,19 @@ app.use(errorHandler);
 // Iniciar servidor
 const PORT = config.server.port;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   console.log(`📡 Ambiente: ${config.server.env}`);
   console.log(`🔗 URL: http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket: HABILITADO`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('');
   console.log('Endpoints disponibles:');
   console.log(`  ✓ Health check: http://localhost:${PORT}/health`);
   console.log(`  ✓ Admin auth:   http://localhost:${PORT}/api/admin/auth/login`);
+  console.log(`  ✓ Ofertas:      http://localhost:${PORT}/api/ofertas`);
+  console.log(`  ✓ WebSocket:    ws://localhost:${PORT}`);
   console.log('');
 });
 

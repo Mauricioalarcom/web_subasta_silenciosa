@@ -129,7 +129,7 @@ const createTables = async () => {
         obra_id UUID REFERENCES obras(id) ON DELETE CASCADE,
         usuario_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
         monto DECIMAL(10,2) NOT NULL,
-        metodo VARCHAR(50) CHECK (metodo IN ('TARJETA', 'TRANSFERENCIA', 'QR') OR metodo IS NULL),
+        metodo VARCHAR(50) CHECK (metodo IN ('CASH', 'TARJETA', 'TRANSFERENCIA', 'QR') OR metodo IS NULL),
         estado_pago VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (estado_pago IN ('PENDIENTE', 'PROCESANDO', 'CONFIRMADO', 'RECHAZADO')),
         estado_entrega VARCHAR(30) DEFAULT 'PENDIENTE' CHECK (estado_entrega IN ('PENDIENTE', 'EN_PREPARACION', 'LISTA_PARA_RECOGER', 'ENTREGADA')),
         transaccion_id VARCHAR(255),

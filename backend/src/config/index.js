@@ -27,8 +27,9 @@ module.exports = {
   email: {
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true' || false,
     user: process.env.EMAIL_USER,
-    password: process.env.EMAIL_PASSWORD,
+    pass: process.env.EMAIL_PASSWORD,
     from: process.env.EMAIL_FROM || 'noreply@subasta.com',
   },
   
@@ -46,5 +47,9 @@ module.exports = {
   urls: {
     adminPanel: process.env.ADMIN_PANEL_URL || 'http://localhost:3001',
     publicWeb: process.env.PUBLIC_WEB_URL || 'http://localhost:3000',
+  },
+
+  frontend: {
+    url: process.env.FRONTEND_URL || process.env.PUBLIC_WEB_URL || 'http://localhost:3000',
   },
 };
