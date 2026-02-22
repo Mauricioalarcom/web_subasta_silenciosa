@@ -12,6 +12,7 @@ const { initializeWebSocket } = require('./services/websocketService');
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
+const userAuthRoutes = require('./routes/userAuthRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
 const obraRoutes = require('./routes/obraRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
@@ -63,6 +64,7 @@ app.get('/health', (req, res) => {
 
 // Rutas de la API
 app.use('/api/admin/auth', authRoutes);
+app.use('/api/auth', userAuthRoutes); // Rutas de autenticación para usuarios públicos
 app.use('/api/admin/evento', eventoRoutes);
 app.use('/api/admin/obras', obraRoutes);
 app.use('/api/admin/pagos', pagoRoutes);
