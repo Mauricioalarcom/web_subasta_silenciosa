@@ -133,8 +133,9 @@ exports.createOferta = async (req, res) => {
         [obra_id]
       );
     } else {
-      // 6. Validar monto mínimo (precio_actual + incremento_minimo)
-      const montoMinimo = precioActual + parseFloat(obra.incremento_minimo);
+      // 6. Validar monto mínimo (precio_actual + 10)
+      const INCREMENTO_MINIMO = 10;
+      const montoMinimo = precioActual + INCREMENTO_MINIMO;
       
       if (parseFloat(monto) < montoMinimo) {
         await client.query('ROLLBACK');
@@ -143,7 +144,7 @@ exports.createOferta = async (req, res) => {
           message: `El monto mínimo de la oferta debe ser ${montoMinimo.toFixed(2)}`,
           data: {
             precio_actual: precioActual,
-            incremento_minimo: parseFloat(obra.incremento_minimo),
+            incremento_minimo: INCREMENTO_MINIMO,
             monto_minimo: montoMinimo
           }
         });

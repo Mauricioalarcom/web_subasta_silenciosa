@@ -235,10 +235,10 @@ export default function ObraDetailPage() {
       if (response.data.success) {
         setObra(response.data.data);
         
-        // Inicializar monto con el mínimo requerido
+        // Inicializar monto con el mínimo requerido (+10)
         const precioActual = parseFloat(response.data.data.precio_actual);
-        const incremento = parseFloat(response.data.data.incremento_minimo);
-        setMontoOferta((precioActual + incremento).toFixed(2));
+        const INCREMENTO_MINIMO = 10;
+        setMontoOferta((precioActual + INCREMENTO_MINIMO).toFixed(2));
       }
     } catch (error: any) {
       console.error('Error al cargar obra:', error);
@@ -282,7 +282,8 @@ export default function ObraDetailPage() {
     }
     
     if (!esCompraInmediata) {
-      const montoMinimo = parseFloat(obra.precio_actual.toString()) + parseFloat(obra.incremento_minimo.toString());
+      const INCREMENTO_MINIMO = 10;
+      const montoMinimo = parseFloat(obra.precio_actual.toString()) + INCREMENTO_MINIMO;
       if (monto < montoMinimo) {
         toast.error(`El monto mínimo es S/ ${montoMinimo.toFixed(2)}`);
         return;
@@ -301,8 +302,9 @@ export default function ObraDetailPage() {
       if (response.data.success) {
         toast.success(response.data.message);
         
-        // Actualizar monto para la siguiente oferta
-        const nuevoMinimo = monto + parseFloat(obra.incremento_minimo.toString());
+        // Actualizar monto para la siguiente oferta (+10)
+        const INCREMENTO_MINIMO = 10;
+        const nuevoMinimo = monto + INCREMENTO_MINIMO;
         setMontoOferta(nuevoMinimo.toFixed(2));
         
         // Recargar ofertas
@@ -345,7 +347,8 @@ export default function ObraDetailPage() {
     );
   }
 
-  const montoMinimo = parseFloat(obra.precio_actual.toString()) + parseFloat(obra.incremento_minimo.toString());
+  const INCREMENTO_MINIMO = 10;
+  const montoMinimo = parseFloat(obra.precio_actual.toString()) + INCREMENTO_MINIMO;
   const imagenes = obra.imagen_principal 
     ? [obra.imagen_principal, ...obra.imagenes]
     : obra.imagenes;
@@ -549,7 +552,7 @@ export default function ObraDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Incremento mínimo</p>
                     <p className="font-semibold text-gray-900">
-                      S/ {parseFloat(obra.incremento_minimo.toString()).toFixed(2)}
+                      S/ 10.00
                     </p>
                   </div>
                 </div>

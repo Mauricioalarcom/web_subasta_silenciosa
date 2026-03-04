@@ -271,7 +271,7 @@ function GaleriaContent() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Gavel className="w-4 h-4" />
-                    +S/ {parseFloat(obra.incremento_minimo.toString()).toFixed(2)}
+                    +S/ 10.00
                   </div>
                 </div>
 
