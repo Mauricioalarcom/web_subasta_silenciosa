@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Countdown } from '@/components/Countdown';
+import FavoritoToggle from '@/components/FavoritoToggle';
 import { useSession } from 'next-auth/react';
 import { 
   ArrowLeft,
@@ -428,8 +429,13 @@ export default function ObraDetailPage() {
               {/* Información de la obra */}
               <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{obra.nombre}</h1>
-                  <p className="text-xl text-gray-600">por {obra.artista}</p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">{obra.nombre}</h1>
+                      <p className="text-xl text-gray-600">por {obra.artista}</p>
+                    </div>
+                    <FavoritoToggle obraId={obra.id} />
+                  </div>
                 </div>
 
                 <div className="border-t border-gray-200 pt-4">

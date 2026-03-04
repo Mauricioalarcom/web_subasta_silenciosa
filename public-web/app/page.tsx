@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import EventoSidebar from '@/components/EventoSidebar';
+import FavoritoToggle from '@/components/FavoritoToggle';
 import { 
   Search, 
   Filter, 
@@ -236,6 +237,11 @@ function GaleriaContent() {
                     <ImageIcon className="w-16 h-16 text-gray-300" />
                   </div>
                 )}
+
+                {/* Toggle de favoritos - esquina superior izquierda */}
+                <div className="absolute top-3 left-3 z-10">
+                  <FavoritoToggle obraId={obra.id} />
+                </div>
 
                 {/* Badge de tiempo restante */}
                 <div className={`absolute top-3 right-3 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center gap-1 ${

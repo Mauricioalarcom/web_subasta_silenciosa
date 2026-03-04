@@ -18,6 +18,7 @@ const obraRoutes = require('./routes/obraRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const ofertaRoutes = require('./routes/ofertaRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const favoritosRoutes = require('./routes/favoritosRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -70,6 +71,7 @@ app.use('/api/admin/obras', obraRoutes);
 app.use('/api/admin/pagos', pagoRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/ofertas', ofertaRoutes);
+app.use('/api/favoritos', favoritosRoutes);
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
