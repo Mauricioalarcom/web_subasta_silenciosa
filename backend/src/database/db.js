@@ -1,13 +1,20 @@
 const { Pool } = require('pg');
 const config = require('../config');
 
-const pool = new Pool({
-  host: config.database.host,
-  port: config.database.port,
-  database: config.database.database,
-  user: config.database.user,
-  password: config.database.password,
-});
+// Crear pool usando DATABASE_URL si existe, sino usar configuración individual
+const pool = process.env.DATABASE_URL 
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    })
+  : new Pool({
+      host: config.database.host,
+      port: config.database.port,
+      database: config.database.database,
+      user: config.database.user,
+      password: config.database.password,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
 
 // Test connection
 pool.on('connect', () => {

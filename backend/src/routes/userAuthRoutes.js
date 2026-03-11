@@ -202,11 +202,11 @@ router.post('/login', async (req, res) => {
 
 /**
  * POST /api/auth/google
- * Login/registro con Google OAuth
+ * Autenticación/registro con Google OAuth
  */
 router.post('/google', async (req, res) => {
   try {
-    const { email, nombre, foto_perfil } = req.body;
+    const { email, nombre, foto_perfil, provider } = req.body;
 
     // Validar campos requeridos
     if (!email || !nombre) {
@@ -216,42 +216,40 @@ router.post('/google', async (req, res) => {
       });
     }
 
-    // Buscar si el usuario ya existe
-    let result = await db.query(
-      'SELECT id, nombre, email, rol, foto_perfil FROM usuarios WHERE email = $1',
+    // Verificar si el usuario ya existe
+    let usuario = await db.query(
+      'SELECT id, nombre, email, rol, foto_perfil, provider FROM usuarios WHERE email = $1',
       [email]
     );
 
-    let usuario;
-
-    if (result.rows.length === 0) {
-      // Crear nuevo usuario con Google
-      result = await db.query(
-        `INSERT INTO usuarios (nombre, email, rol, provider, foto_perfil) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING id, nombre, email, rol, foto_perfil`,
-        [nombre, email, 'USER', 'google', foto_perfil]
+    if (usuario.rows.length === 0) {
+      // Crear nuevo usuario si no existe
+      const result = await db.query(
+        `INSERT INTO usuarios (nombre, email, rol, provider, foto_perfil, estado) 
+         VALUES ($1, $2, $3, $4, $5, $6) 
+         RETURNING id, nombre, email, rol, foto_perfil, provider`,
+        [nombre, email, 'USER', provider || 'google', foto_perfil, 'ACTIVO']
       );
-      usuario = result.rows[0];
+      usuario = result;
     } else {
-      // Usuario existente - actualizar foto si cambió
-      usuario = result.rows[0];
-      
-      if (foto_perfil && foto_perfil !== usuario.foto_perfil) {
+      // Actualizar foto de perfil si cambió
+      if (foto_perfil && usuario.rows[0].foto_perfil !== foto_perfil) {
         await db.query(
           'UPDATE usuarios SET foto_perfil = $1 WHERE id = $2',
-          [foto_perfil, usuario.id]
+          [foto_perfil, usuario.rows[0].id]
         );
-        usuario.foto_perfil = foto_perfil;
+        usuario.rows[0].foto_perfil = foto_perfil;
       }
     }
+
+    const userData = usuario.rows[0];
 
     // Generar token JWT
     const token = jwt.sign(
       { 
-        id: usuario.id, 
-        email: usuario.email, 
-        rol: usuario.rol 
+        id: userData.id, 
+        email: userData.email, 
+        rol: userData.rol 
       },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
@@ -269,21 +267,15 @@ router.post('/google', async (req, res) => {
       success: true,
       message: 'Autenticación con Google exitosa',
       data: {
-        usuario: {
-          id: usuario.id,
-          nombre: usuario.nombre,
-          email: usuario.email,
-          rol: usuario.rol,
-          foto_perfil: usuario.foto_perfil
-        },
+        usuario: userData,
         token
       }
     });
   } catch (error) {
-    console.error('❌ Error en Google OAuth:', error);
+    console.error('❌ Error en autenticación Google:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al autenticar con Google',
+      message: 'Error en autenticación con Google',
       error: error.message
     });
   }
