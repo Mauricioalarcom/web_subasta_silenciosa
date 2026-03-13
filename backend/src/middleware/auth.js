@@ -7,8 +7,10 @@ const db = require('../database/db');
  */
 const authenticate = async (req, res, next) => {
   try {
-    // Obtener token de las cookies o del header
-    const token = req.cookies?.auth_token || req.headers.authorization?.replace('Bearer ', '');
+    // Obtener token del header Authorization (que NextAuth envía)
+    // El formato es: Authorization: Bearer <token>
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({

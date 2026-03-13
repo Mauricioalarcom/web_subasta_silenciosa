@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       role: string;
     } & DefaultSession["user"];
+    backendToken?: string;
   }
 
   interface User {

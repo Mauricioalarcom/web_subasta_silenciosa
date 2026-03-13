@@ -97,6 +97,7 @@ const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
+      session.backendToken = token.backendToken as string;
       return session;
     }
   },

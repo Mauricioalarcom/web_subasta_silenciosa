@@ -67,14 +67,8 @@ const loginAdmin = async (req, res, next) => {
       ]
     );
 
-    // Establecer cookie httpOnly con SameSite=None para permitir CORS
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: true, // Obligatorio con SameSite=None
-      sameSite: 'none', // Permite cookies en peticiones entre dominios
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
-    });
-
+    // NextAuth maneja las cookies de sesión, así que no creamos una cookie aquí
+    // Solo devolvemos el token JWT para que NextAuth lo almacene en su sesión
     res.json({
       success: true,
       message: 'Login exitoso',
