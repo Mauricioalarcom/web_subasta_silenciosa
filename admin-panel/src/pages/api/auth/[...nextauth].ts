@@ -37,17 +37,18 @@ const authOptions: NextAuthOptions = {
           });
 
           if (response.data.success) {
-            const user = response.data.data.user;
+            const { user, token } = response.data.data;
             return {
               id: user.id.toString(),
               email: user.email,
               name: user.nombre,
-              role: user.rol || 'ADMIN'
-            };
+              role: user.rol || 'ADMIN',
+              backendToken: token,
+            } as any;
           }
           return null;
         } catch (error: any) {
-          throw new Error(error.response?.data?.message || 'Error al autenticar');
+          throw new Error(error.response?.data?.message || 'Credenciales incorrectas');
         }
       }
     })
@@ -57,7 +58,6 @@ const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         try {
-          // Registrar/autenticar administrador con Google
           const response = await axios.post(`${API_URL}/api/admin/auth/google`, {
             email: user.email,
             nombre: user.name,
@@ -66,11 +66,15 @@ const authOptions: NextAuthOptions = {
           });
 
           if (response.data.success) {
-            // Actualizar el usuario con datos del backend
-            user.role = 'ADMIN';
-            user.id = response.data.data.user.id.toString();
+            const backendUser = response.data.data.user;
+            const token = response.data.data.token;
+            // Enriquecer el objeto user con datos del backend
+            (user as any).id = backendUser.id.toString();
+            (user as any).role = backendUser.rol || 'ADMIN';
+            (user as any).backendToken = token;
             return true;
           }
+          return false;
         } catch (error) {
           console.error('Error en autenticación Google admin:', error);
           return false;
@@ -81,16 +85,17 @@ const authOptions: NextAuthOptions = {
 
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role || 'ADMIN';
-        token.id = user.id;
+        token.id = (user as any).id || user.email;
+        token.role = (user as any).role || 'ADMIN';
+        token.backendToken = (user as any).backendToken;
       }
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
         session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     }

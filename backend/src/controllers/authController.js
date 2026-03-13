@@ -67,11 +67,11 @@ const loginAdmin = async (req, res, next) => {
       ]
     );
 
-    // Establecer cookie httpOnly
+    // Establecer cookie httpOnly con SameSite=None para permitir CORS
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Obligatorio con SameSite=None
+      sameSite: 'none', // Permite cookies en peticiones entre dominios
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
     });
 
