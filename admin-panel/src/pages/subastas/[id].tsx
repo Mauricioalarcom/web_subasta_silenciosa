@@ -511,7 +511,7 @@ export default function ObraDetailPage() {
                           <p className={`font-bold ${
                             idx === 0 ? 'text-green-600 text-lg' : 'text-gray-900'
                           }`}>
-                            S/ {parseFloat(oferta.monto).toFixed(2)}
+                            S/ {Number(oferta.monto).toFixed(2)}
                           </p>
                           {idx === 0 && (
                             <span className="text-xs text-green-600 font-medium">
@@ -548,7 +548,7 @@ export default function ObraDetailPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Precio actual</p>
                   <p className="text-4xl font-bold text-purple-600">
-                    S/ {parseFloat(obra.precio_actual.toString()).toFixed(2)}
+                    S/ {Number(obra.precio_actual).toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
                     {obra.numero_ofertas} oferta(s)
@@ -609,7 +609,7 @@ export default function ObraDetailPage() {
                         className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2"
                       >
                         <Zap className="w-5 h-5" />
-                        Comprar Ya por S/ {parseFloat(obra.precio_comprar_ahora.toString()).toFixed(2)}
+                        Comprar Ya por S/ {Number(obra.precio_comprar_ahora).toFixed(2)}
                       </button>
                     )}
 

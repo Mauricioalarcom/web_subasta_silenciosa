@@ -383,7 +383,7 @@ export default function PagosPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                          S/ {parseFloat(pago.monto).toFixed(2)}
+                          S/ {Number(pago.monto).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           <span className="flex items-center gap-1">
@@ -444,7 +444,7 @@ export default function PagosPage() {
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-2">Pago</h3>
                       <p className="text-sm text-gray-600">
-                        Monto: <span className="font-semibold">S/ {parseFloat(pagoSeleccionado.monto).toFixed(2)}</span>
+                        Monto: <span className="font-semibold">S/ {Number(pagoSeleccionado.monto).toFixed(2)}</span>
                       </p>
                       <p className="text-sm text-gray-600">Método: {pagoSeleccionado.metodo || 'No seleccionado'}</p>
                       <p className="text-sm text-gray-600">Estado: {getEstadoPagoBadge(pagoSeleccionado.estado_pago)}</p>

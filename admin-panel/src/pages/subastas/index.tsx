@@ -191,7 +191,7 @@ export default function ObrasActivasPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Precio actual:</span>
                         <span className="text-lg font-bold text-purple-600">
-                          S/ {parseFloat(obra.precio_actual).toFixed(2)}
+                          S/ {Number(obra.precio_actual).toFixed(2)}
                         </span>
                       </div>
                       {obra.numero_ofertas > 0 && (

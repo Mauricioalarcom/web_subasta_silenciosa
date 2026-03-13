@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd admin-panel && npm run build",
+  "outputDirectory": "admin-panel/.next",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://websubastasilenciosa-production.up.railway.app"
+  }
+}

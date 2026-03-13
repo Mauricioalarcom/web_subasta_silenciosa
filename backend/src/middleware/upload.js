@@ -1,25 +1,8 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
-// Crear directorio uploads si no existe
-const uploadsDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configuración de almacenamiento
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Generar nombre único: timestamp-random-extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-  }
-});
+// Configuración de almacenamiento en memoria para Cloudinary
+const storage = multer.memoryStorage();
 
 // Filtro de archivos - solo imágenes
 const fileFilter = (req, file, cb) => {
@@ -34,13 +17,15 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configuración de multer
+// Configuración de multer para Cloudinary
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB máximo
+    fileSize: 10 * 1024 * 1024 // 10MB máximo
   }
 });
+
+module.exports = upload;
 
 module.exports = upload;

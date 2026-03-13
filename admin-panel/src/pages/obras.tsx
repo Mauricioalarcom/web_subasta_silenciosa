@@ -297,12 +297,12 @@ export default function ObrasPage() {
                             <div className="text-sm">
                               <div className="flex items-center gap-1 text-gray-900 font-medium">
                                 <DollarSign className="w-3 h-3" />
-                                S/ {parseFloat(obra.precio_base).toFixed(2)}
+                                S/ {Number(obra.precio_base).toFixed(2)}
                               </div>
                               {obra.precio_actual > obra.precio_base && (
                                 <div className="flex items-center gap-1 text-green-600 font-semibold">
                                   <Award className="w-3 h-3" />
-                                  S/ {parseFloat(obra.precio_actual).toFixed(2)}
+                                  S/ {Number(obra.precio_actual).toFixed(2)}
                                 </div>
                               )}
                             </div>

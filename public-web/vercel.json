@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd public-web && npm run build",
+  "outputDirectory": "public-web/.next",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://websubastasilenciosa-production.up.railway.app"
+  }
+}

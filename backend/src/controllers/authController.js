@@ -164,9 +164,90 @@ const verifySession = async (req, res, next) => {
   }
 };
 
+/**
+ * Google OAuth Login
+ */
+const googleAuth = async (req, res, next) => {
+  try {
+    const { email, name, googleId, picture } = req.body;
+
+    // Validar campos requeridos
+    if (!email || !name || !googleId) {
+      throw new ValidationError('Datos de Google incompletos');
+    }
+
+    // Verificar si el usuario ya existe
+    let result = await db.query(
+      'SELECT id, email, nombre, rol, estado, google_id FROM usuarios WHERE email = $1',
+      [email]
+    );
+
+    let user;
+
+    if (result.rows.length > 0) {
+      // Usuario existe, actualizar google_id si no lo tiene
+      user = result.rows[0];
+      
+      if (!user.google_id) {
+        await db.query(
+          'UPDATE usuarios SET google_id = $1, foto_perfil = $2, ultima_sesion = NOW() WHERE id = $3',
+          [googleId, picture, user.id]
+        );
+        user.google_id = googleId;
+      } else {
+        // Solo actualizar última sesión
+        await db.query(
+          'UPDATE usuarios SET ultima_sesion = NOW() WHERE id = $1',
+          [user.id]
+        );
+      }
+    } else {
+      // Crear nuevo usuario
+      const insertResult = await db.query(
+        `INSERT INTO usuarios (email, nombre, google_id, foto_perfil, rol, estado, fecha_registro)
+         VALUES ($1, $2, $3, $4, 'USER', 'ACTIVO', NOW())
+         RETURNING id, email, nombre, rol, estado`,
+        [email, name, googleId, picture]
+      );
+      user = insertResult.rows[0];
+    }
+
+    // Verificar que el usuario esté activo
+    if (user.estado !== 'ACTIVO') {
+      throw new AuthenticationError('Usuario inactivo o bloqueado');
+    }
+
+    // Generar token JWT
+    const token = generateToken(user.id, user.email, user.rol);
+
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Login con Google exitoso',
+      user: {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        rol: user.rol
+      },
+      token
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   loginAdmin,
   logoutAdmin,
   getProfile,
-  verifySession
+  verifySession,
+  googleAuth
 };

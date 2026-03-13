@@ -10,6 +10,12 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 router.post('/login', authController.loginAdmin);
 
 /**
+ * POST /api/admin/auth/google
+ * Google OAuth login
+ */
+router.post('/google', authController.googleAuth);
+
+/**
  * POST /api/admin/auth/logout
  * Logout de administrador
  */

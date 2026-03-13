@@ -19,6 +19,7 @@ const pagoRoutes = require('./routes/pagoRoutes');
 const ofertaRoutes = require('./routes/ofertaRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const favoritosRoutes = require('./routes/favoritosRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -72,6 +73,7 @@ app.use('/api/admin/pagos', pagoRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/ofertas', ofertaRoutes);
 app.use('/api/favoritos', favoritosRoutes);
+app.use('/api/upload', uploadRoutes); // Rutas de upload de imágenes
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
