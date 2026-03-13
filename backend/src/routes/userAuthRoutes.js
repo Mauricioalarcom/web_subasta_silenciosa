@@ -223,16 +223,16 @@ router.post('/google', async (req, res) => {
     );
 
     if (usuario.rows.length === 0) {
-      // Crear nuevo usuario si no existe
+      // Crear nuevo usuario PÚBLICO (nunca admin) si no existe
       const result = await db.query(
         `INSERT INTO usuarios (nombre, email, rol, provider, foto_perfil, estado) 
          VALUES ($1, $2, $3, $4, $5, $6) 
          RETURNING id, nombre, email, rol, foto_perfil, provider`,
-        [nombre, email, 'USER', provider || 'google', foto_perfil, 'ACTIVO']
+        [nombre, email, 'USUARIO', provider || 'google', foto_perfil, 'ACTIVO']
       );
       usuario = result;
     } else {
-      // Actualizar foto de perfil si cambió
+      // Actualizar foto de perfil si cambió, pero NO cambiar el rol
       if (foto_perfil && usuario.rows[0].foto_perfil !== foto_perfil) {
         await db.query(
           'UPDATE usuarios SET foto_perfil = $1 WHERE id = $2',

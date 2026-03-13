@@ -15,9 +15,9 @@ const loginAdmin = async (req, res, next) => {
       throw new ValidationError('Email y contraseña son requeridos');
     }
 
-    // Buscar usuario por email
+    // Buscar usuario por email (incluye password_hash)
     const result = await db.query(
-      `SELECT id, email, nombre, rol, estado 
+      `SELECT id, email, nombre, rol, estado, password_hash, imagen_perfil
        FROM usuarios 
        WHERE email = $1 AND rol = 'ADMIN'`,
       [email]
@@ -34,11 +34,13 @@ const loginAdmin = async (req, res, next) => {
       throw new AuthenticationError('Usuario inactivo o bloqueado');
     }
 
-    // Para este MVP simplificado, usaremos una contraseña temporal
-    // En producción, deberías almacenar contraseñas hasheadas
-    // Por ahora, aceptamos 'admin123' para el usuario admin
-    const isValidPassword = password === 'admin123';
+    // Verificar que exista password_hash
+    if (!user.password_hash) {
+      throw new AuthenticationError('Cuenta sin contraseña. Usa Google OAuth o establece una contraseña.');
+    }
 
+    // Verificar contraseña real con bcrypt
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
       throw new AuthenticationError('Credenciales inválidas');
     }
@@ -81,7 +83,8 @@ const loginAdmin = async (req, res, next) => {
           id: user.id,
           email: user.email,
           nombre: user.nombre,
-          rol: user.rol
+          rol: user.rol,
+          imagen_perfil: user.imagen_perfil
         },
         token
       }
@@ -190,7 +193,7 @@ const googleAuth = async (req, res, next) => {
       
       if (!user.google_id) {
         await db.query(
-          'UPDATE usuarios SET google_id = $1, foto_perfil = $2, ultima_sesion = NOW() WHERE id = $3',
+          'UPDATE usuarios SET google_id = $1, imagen_perfil = $2, ultima_sesion = NOW() WHERE id = $3',
           [googleId, picture, user.id]
         );
         user.google_id = googleId;
@@ -202,43 +205,19 @@ const googleAuth = async (req, res, next) => {
         );
       }
     } else {
-      // Crear nuevo usuario
-      const insertResult = await db.query(
-        `INSERT INTO usuarios (email, nombre, google_id, foto_perfil, rol, estado, fecha_registro)
-         VALUES ($1, $2, $3, $4, 'USER', 'ACTIVO', NOW())
-         RETURNING id, email, nombre, rol, estado`,
-        [email, name, googleId, picture]
+      // Crear usuario nuevo con rol por defecto USER (backend admin flow will set ADMIN on admin endpoint)
+      const insert = await db.query(
+        `INSERT INTO usuarios (email, nombre, google_id, imagen_perfil, rol, fecha_registro, ultima_sesion)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id, email, nombre, rol`,
+        [email, name, googleId, picture, 'USER']
       );
-      user = insertResult.rows[0];
+      user = insert.rows[0];
     }
 
-    // Verificar que el usuario esté activo
-    if (user.estado !== 'ACTIVO') {
-      throw new AuthenticationError('Usuario inactivo o bloqueado');
-    }
-
-    // Generar token JWT
+    // Generar token y responder (si tu app requiere JWT aquí puedes generarlo)
     const token = generateToken(user.id, user.email, user.rol);
 
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 24 horas
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'Login con Google exitoso',
-      user: {
-        id: user.id,
-        email: user.email,
-        nombre: user.nombre,
-        rol: user.rol
-      },
-      token
-    });
-
+    res.json({ success: true, message: 'Autenticación Google exitosa', data: { user, token } });
   } catch (error) {
     next(error);
   }

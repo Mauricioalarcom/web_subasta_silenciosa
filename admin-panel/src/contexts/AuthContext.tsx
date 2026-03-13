@@ -1,18 +1,19 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { authAPI } from '@/lib/api';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 interface User {
   id: string;
   email: string;
-  nombre: string;
-  rol: string;
+  name: string; // Cambiado de 'nombre' a 'name'
+  role: string; // Cambiado de 'rol' a 'role'
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -24,68 +25,49 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Verificar sesión al cargar
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const loading = status === 'loading';
+  const user = session?.user as User | null;
+  const isAuthenticated = !!session;
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        const response = await authAPI.verifySession();
-        if (response.data.success) {
-          setUser(response.data.data.user);
-        }
-      }
-    } catch (error) {
-      console.error('Error verificando autenticación:', error);
-      localStorage.removeItem('auth_token');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    // Si la sesión ha terminado de cargar y no hay usuario,
+    // y no estamos en una página pública, redirigir a login.
+    if (!loading && !isAuthenticated && !['/login', '/register'].includes(router.pathname)) {
+      router.push('/login');
+    }
+  }, [loading, isAuthenticated, router]);
+
+  const login = async (email: string, password: string) => {
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+
+    if (result?.ok) {
+      router.push('/dashboard');
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await authAPI.login(email, password);
-      if (response.data.success) {
-        const { user, token } = response.data.data;
-        setUser(user);
-        localStorage.setItem('auth_token', token);
-        router.push('/dashboard');
-      }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
-    }
+  const loginWithGoogle = async () => {
+    // NextAuth se encarga de todo el flujo de redirección
+    await signIn('google', { callbackUrl: '/dashboard' });
   };
 
   const logout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem('auth_token');
-      router.push('/login');
-    }
+    // NextAuth limpia la sesión y redirige
+    await signOut({ callbackUrl: '/login' });
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        logout,
-        isAuthenticated: !!user,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

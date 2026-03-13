@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://websubastasilenciosa-production.up.railway.app';
 
 // Configurar axios con credenciales
 const apiClient = axios.create({
@@ -10,20 +10,6 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Interceptor para agregar token si existe
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
-);
 
 // Interceptor para manejar errores
 apiClient.interceptors.response.use(

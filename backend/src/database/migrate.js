@@ -1,3 +1,10 @@
+// Cargar configuración de desarrollo local
+if (process.env.NODE_ENV === 'development') {
+  require('dotenv').config({ path: '.env.local' });
+} else {
+  require('dotenv').config();
+}
+
 const db = require('./db');
 
 const createTables = async () => {
@@ -27,6 +34,15 @@ const createTables = async () => {
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);
       CREATE INDEX IF NOT EXISTS idx_usuarios_google_id ON usuarios(google_id);
+    `);
+
+    // Ensure legacy or missing columns exist (safe ALTERs)
+    await db.query(`
+      ALTER TABLE usuarios
+        ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS imagen_perfil TEXT,
+        ADD COLUMN IF NOT EXISTS fecha_verificacion_email TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE;
     `);
 
     // Tabla: evento

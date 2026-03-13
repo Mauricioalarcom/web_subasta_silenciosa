@@ -1,4 +1,9 @@
-require('dotenv').config();
+// Cargar configuración según el entorno
+if (process.env.NODE_ENV === 'development') {
+  require('dotenv').config({ path: '.env.local' });
+} else {
+  require('dotenv').config();
+}
 
 module.exports = {
   server: {

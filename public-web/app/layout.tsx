@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/Providers'
 import { Navbar } from '@/components/Navbar'
+import AdminBanner from '@/components/AdminBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <div className="min-h-screen bg-gray-50">
+            <AdminBanner />
             <Navbar />
             <main className="py-8">
               {children}

@@ -68,6 +68,19 @@ const authOptions: NextAuthOptions = {
       // Si es login con Google, crear o actualizar usuario en backend
       if (account?.provider === 'google' && user) {
         try {
+          // Verificar si es administrador existente
+          const adminCheckResponse = await axios.get(`${API_URL}/api/admin/auth/check-admin?email=${encodeURIComponent(user.email!)}`).catch(() => null);
+          
+          if (adminCheckResponse?.data?.success && adminCheckResponse.data.isAdmin) {
+            // Es administrador - usar datos de admin
+            token.id = adminCheckResponse.data.user.id;
+            token.role = adminCheckResponse.data.user.rol;
+            token.isAdmin = true;
+            token.accessToken = 'admin_session';
+            return token;
+          }
+
+          // Si no es admin, registrar/actualizar como usuario público normal
           const response = await axios.post(`${API_URL}/api/auth/google`, {
             email: user.email,
             nombre: user.name,
@@ -77,7 +90,8 @@ const authOptions: NextAuthOptions = {
 
           if (response.data.success) {
             token.id = response.data.data.usuario.id;
-            token.role = response.data.data.usuario.rol;
+            token.role = response.data.data.usuario.rol || 'USUARIO';
+            token.isAdmin = false;
             token.accessToken = response.data.data.token;
           }
         } catch (error) {
@@ -93,6 +107,7 @@ const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).isAdmin = token.isAdmin;
         (session.user as any).accessToken = token.accessToken;
       }
       return session;

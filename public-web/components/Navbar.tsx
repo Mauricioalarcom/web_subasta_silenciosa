@@ -83,9 +83,16 @@ export function Navbar() {
                       <User className="w-4 h-4 text-purple-600" />
                     </div>
                   )}
-                  <span className="text-sm font-medium text-gray-700">
-                    {session.user?.name || session.user?.email}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-700">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                    {session.user?.isAdmin && (
+                      <span className="text-xs text-purple-600 font-semibold">
+                        👑 Administrador
+                      </span>
+                    )}
+                  </div>
                 </div>
               </>
             ) : (

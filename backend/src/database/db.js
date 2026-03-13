@@ -1,4 +1,10 @@
 const { Pool } = require('pg');
+
+// Cargar configuración según el entorno
+if (process.env.NODE_ENV === 'development') {
+  require('dotenv').config({ path: '.env.local' });
+}
+
 const config = require('../config');
 
 // Crear pool usando DATABASE_URL si existe, sino usar configuración individual
