@@ -50,6 +50,31 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Middleware para forzar atributos SameSite=None y Secure en cookies
+// Esto es crucial para la autenticación entre dominios (localhost -> railway.app)
+app.use((req, res, next) => {
+  const originalSetHeader = res.setHeader.bind(res);
+  res.setHeader = (name, value) => {
+    if (name.toLowerCase() === 'set-cookie' && Array.isArray(value)) {
+      const newValues = value.map(cookie => {
+        let newCookie = cookie;
+        // Añadir SameSite=None si no está presente
+        if (!/samesite/i.test(cookie)) {
+          newCookie += '; SameSite=None';
+        }
+        // Añadir Secure si no está presente
+        if (!/secure/i.test(cookie)) {
+          newCookie += '; Secure';
+        }
+        return newCookie;
+      });
+      return originalSetHeader(name, newValues);
+    }
+    return originalSetHeader(name, value);
+  };
+  next();
+});
+
 // Logger
 if (config.server.env === 'development') {
   app.use(morgan('dev'));
