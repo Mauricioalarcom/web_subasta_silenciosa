@@ -1,3 +1,5 @@
+'use client';
+
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -5,7 +7,7 @@ export default function AdminBanner() {
   const { data: session } = useSession();
 
   // Solo mostrar si el usuario es admin
-  if (!session?.user?.isAdmin) {
+  if (session?.user?.role !== 'ADMIN') {
     return null;
   }
 

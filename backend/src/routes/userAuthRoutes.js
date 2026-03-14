@@ -57,10 +57,10 @@ router.post('/register', async (req, res) => {
 
     // Crear usuario
     const result = await db.query(
-      `INSERT INTO usuarios (nombre, email, password, rol, provider) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, nombre, email, rol, created_at`,
-      [nombre, email, passwordHash, 'USER', 'local']
+      `INSERT INTO usuarios (nombre, email, password_hash, rol, fecha_registro) 
+       VALUES ($1, $2, $3, $4, NOW()) 
+       RETURNING id, nombre, email, rol`,
+      [nombre, email, passwordHash, 'USER']
     );
 
     const usuario = result.rows[0];
@@ -68,21 +68,13 @@ router.post('/register', async (req, res) => {
     // Generar token JWT
     const token = jwt.sign(
       { 
-        id: usuario.id, 
+        userId: usuario.id, 
         email: usuario.email, 
         rol: usuario.rol 
       },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
-
-    // Establecer cookie con el token
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
-    });
 
     res.status(201).json({
       success: true,
@@ -125,7 +117,7 @@ router.post('/login', async (req, res) => {
 
     // Buscar usuario por email
     const result = await db.query(
-      `SELECT id, nombre, email, password, rol, foto_perfil, provider 
+      `SELECT id, nombre, email, password_hash, rol, imagen_perfil, google_id 
        FROM usuarios WHERE email = $1`,
       [email]
     );
@@ -139,16 +131,24 @@ router.post('/login', async (req, res) => {
 
     const usuario = result.rows[0];
 
-    // Verificar si el usuario se registró con Google
-    if (usuario.provider === 'google') {
+    // Verificar si el usuario se registró con Google (y no tiene password_hash)
+    if (!usuario.password_hash && usuario.google_id) {
       return res.status(400).json({
         success: false,
         message: 'Esta cuenta fue creada con Google. Por favor inicia sesión con Google.'
       });
     }
 
-    // Verificar contraseña
-    const passwordValida = await bcrypt.compare(password, usuario.password);
+    // Verificar que exista password_hash
+    if (!usuario.password_hash) {
+      return res.status(401).json({
+        success: false,
+        message: 'Credenciales inválidas'
+      });
+    }
+
+    // Verificar contraseña con bcrypt
+    const passwordValida = await bcrypt.compare(password, usuario.password_hash);
 
     if (!passwordValida) {
       return res.status(401).json({
@@ -160,21 +160,13 @@ router.post('/login', async (req, res) => {
     // Generar token JWT
     const token = jwt.sign(
       { 
-        id: usuario.id, 
+        userId: usuario.id, 
         email: usuario.email, 
         rol: usuario.rol 
       },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
-
-    // Establecer cookie con el token
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
-    });
 
     res.json({
       success: true,
@@ -185,7 +177,7 @@ router.post('/login', async (req, res) => {
           nombre: usuario.nombre,
           email: usuario.email,
           rol: usuario.rol,
-          foto_perfil: usuario.foto_perfil
+          imagen_perfil: usuario.imagen_perfil
         },
         token
       }
@@ -206,7 +198,7 @@ router.post('/login', async (req, res) => {
  */
 router.post('/google', async (req, res) => {
   try {
-    const { email, nombre, foto_perfil, provider } = req.body;
+    const { email, nombre, foto_perfil } = req.body;
 
     // Validar campos requeridos
     if (!email || !nombre) {
@@ -218,28 +210,33 @@ router.post('/google', async (req, res) => {
 
     // Verificar si el usuario ya existe
     let usuario = await db.query(
-      'SELECT id, nombre, email, rol, foto_perfil, provider FROM usuarios WHERE email = $1',
+      'SELECT id, nombre, email, rol, imagen_perfil, google_id FROM usuarios WHERE email = $1',
       [email]
     );
 
     if (usuario.rows.length === 0) {
       // Crear nuevo usuario PÚBLICO (nunca admin) si no existe
       const result = await db.query(
-        `INSERT INTO usuarios (nombre, email, rol, provider, foto_perfil, estado) 
-         VALUES ($1, $2, $3, $4, $5, $6) 
-         RETURNING id, nombre, email, rol, foto_perfil, provider`,
-        [nombre, email, 'USUARIO', provider || 'google', foto_perfil, 'ACTIVO']
+        `INSERT INTO usuarios (nombre, email, rol, google_id, imagen_perfil, fecha_registro) 
+         VALUES ($1, $2, $3, $4, $5, NOW())
+         RETURNING id, nombre, email, rol, imagen_perfil`,
+        [nombre, email, 'USUARIO', email, foto_perfil]
       );
       usuario = result;
     } else {
       // Actualizar foto de perfil si cambió, pero NO cambiar el rol
-      if (foto_perfil && usuario.rows[0].foto_perfil !== foto_perfil) {
+      if (foto_perfil && usuario.rows[0].imagen_perfil !== foto_perfil) {
         await db.query(
-          'UPDATE usuarios SET foto_perfil = $1 WHERE id = $2',
+          'UPDATE usuarios SET imagen_perfil = $1 WHERE id = $2',
           [foto_perfil, usuario.rows[0].id]
         );
-        usuario.rows[0].foto_perfil = foto_perfil;
+        usuario.rows[0].imagen_perfil = foto_perfil;
       }
+      // Actualizar última sesión
+      await db.query(
+        'UPDATE usuarios SET ultima_sesion = NOW() WHERE id = $1',
+        [usuario.rows[0].id]
+      );
     }
 
     const userData = usuario.rows[0];
@@ -247,21 +244,13 @@ router.post('/google', async (req, res) => {
     // Generar token JWT
     const token = jwt.sign(
       { 
-        id: userData.id, 
+        userId: userData.id, 
         email: userData.email, 
         rol: userData.rol 
       },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
-
-    // Establecer cookie con el token
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
-    });
 
     res.json({
       success: true,

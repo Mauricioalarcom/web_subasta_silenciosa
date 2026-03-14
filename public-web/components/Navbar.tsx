@@ -87,7 +87,7 @@ export function Navbar() {
                     <span className="text-sm font-medium text-gray-700">
                       {session.user?.name || session.user?.email}
                     </span>
-                    {session.user?.isAdmin && (
+                    {session.user?.role === 'ADMIN' && (
                       <span className="text-xs text-purple-600 font-semibold">
                         👑 Administrador
                       </span>

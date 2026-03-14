@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -8,7 +9,7 @@ export const publicAPI = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Para enviar cookies
+  withCredentials: true,
 });
 
 // Cliente axios con autenticación (para usuarios logueados)
@@ -19,6 +20,20 @@ export const authAPI = axios.create({
   },
   withCredentials: true,
 });
+
+// Interceptor para agregar el token JWT de NextAuth a cada petición
+authAPI.interceptors.request.use(
+  async (config) => {
+    const session = await getSession();
+    if (session?.backendToken) {
+      config.headers.Authorization = `Bearer ${session.backendToken}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Interceptor para manejar errores globalmente
 authAPI.interceptors.response.use(

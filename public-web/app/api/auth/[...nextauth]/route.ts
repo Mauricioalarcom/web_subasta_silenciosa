@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -31,7 +31,6 @@ const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Llamar al backend para autenticar
           const response = await axios.post(`${API_URL}/api/auth/login`, {
             email: credentials.email,
             password: credentials.password
@@ -39,17 +38,16 @@ const authOptions: NextAuthOptions = {
 
           if (response.data.success && response.data.data.usuario) {
             return {
-              id: response.data.data.usuario.id,
+              id: response.data.data.usuario.id.toString(),
               email: response.data.data.usuario.email,
               name: response.data.data.usuario.nombre,
-              role: response.data.data.usuario.rol,
-              token: response.data.data.token
-            };
+              role: response.data.data.usuario.rol || 'USUARIO',
+              backendToken: response.data.data.token,
+            } as any;
           }
 
           return null;
         } catch (error: any) {
-          console.error('Error al autenticar:', error.response?.data?.message || error.message);
           throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
         }
       }
@@ -57,59 +55,47 @@ const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Guardar info del usuario en el token
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role || 'USUARIO';
-        token.accessToken = (user as any).token;
-      }
-
-      // Si es login con Google, crear o actualizar usuario en backend
-      if (account?.provider === 'google' && user) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google') {
         try {
-          // Verificar si es administrador existente
-          const adminCheckResponse = await axios.get(`${API_URL}/api/admin/auth/check-admin?email=${encodeURIComponent(user.email!)}`).catch(() => null);
-          
-          if (adminCheckResponse?.data?.success && adminCheckResponse.data.isAdmin) {
-            // Es administrador - usar datos de admin
-            token.id = adminCheckResponse.data.user.id;
-            token.role = adminCheckResponse.data.user.rol;
-            token.isAdmin = true;
-            token.accessToken = 'admin_session';
-            return token;
-          }
-
-          // Si no es admin, registrar/actualizar como usuario público normal
           const response = await axios.post(`${API_URL}/api/auth/google`, {
             email: user.email,
             nombre: user.name,
-            foto_perfil: user.image,
-            provider: 'google'
+            foto_perfil: user.image
           });
 
           if (response.data.success) {
-            token.id = response.data.data.usuario.id;
-            token.role = response.data.data.usuario.rol || 'USUARIO';
-            token.isAdmin = false;
-            token.accessToken = response.data.data.token;
+            const backendUser = response.data.data.usuario;
+            const token = response.data.data.token;
+            (user as any).id = backendUser.id.toString();
+            (user as any).role = backendUser.rol || 'USUARIO';
+            (user as any).backendToken = token;
+            return true;
           }
+          return false;
         } catch (error) {
-          console.error('Error al registrar usuario de Google:', error);
+          console.error('Error en autenticación Google:', error);
+          return false;
         }
       }
+      return true;
+    },
 
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = (user as any).id || user.email;
+        token.role = (user as any).role || 'USUARIO';
+        token.backendToken = (user as any).backendToken;
+      }
       return token;
     },
 
     async session({ session, token }) {
-      // Pasar info del token a la sesión
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).isAdmin = token.isAdmin;
-        (session.user as any).accessToken = token.accessToken;
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
+      (session as any).backendToken = token.backendToken as string;
       return session;
     }
   },
