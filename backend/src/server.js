@@ -15,7 +15,9 @@ const authRoutes = require('./routes/authRoutes');
 const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const userAuthRoutes = require('./routes/userAuthRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
+const publicEventoRoutes = require('./routes/publicEventoRoutes');
 const obraRoutes = require('./routes/obraRoutes');
+const publicObraRoutes = require('./routes/publicObraRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const ofertaRoutes = require('./routes/ofertaRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
@@ -94,8 +96,10 @@ app.get('/health', (req, res) => {
 app.use('/api/admin/auth', adminAuthRoutes); // Rutas específicas para administradores
 app.use('/api/admin/auth', authRoutes); // Rutas legacy de admin (mantener compatibilidad)
 app.use('/api/auth', userAuthRoutes); // Rutas de autenticación para usuarios públicos
-app.use('/api/admin/evento', eventoRoutes);
-app.use('/api/admin/obras', obraRoutes);
+app.use('/api/admin/evento', eventoRoutes); // Evento protegido (solo admin)
+app.use('/api/evento', publicEventoRoutes); // Evento público (sin autenticación)
+app.use('/api/admin/obras', obraRoutes); // Obras protegidas (solo admin)
+app.use('/api/obras', publicObraRoutes); // Obras públicas (sin autenticación)
 app.use('/api/admin/pagos', pagoRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/ofertas', ofertaRoutes);

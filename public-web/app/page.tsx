@@ -21,9 +21,7 @@ import { useSession } from 'next-auth/react';
 
 export default function HomePage() {
   return (
-    <ProtectedRoute>
-      <GaleriaContent />
-    </ProtectedRoute>
+    <GaleriaContent />
   );
 }
 
@@ -41,7 +39,7 @@ function GaleriaContent() {
   const loadObras = async () => {
     try {
       setLoading(true);
-      const response = await publicAPI.get('/api/admin/obras', {
+      const response = await publicAPI.get('/api/obras', {
         params: {
           estado: 'ACTIVA',
           limit: 100

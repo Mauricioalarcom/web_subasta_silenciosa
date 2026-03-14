@@ -220,7 +220,7 @@ router.post('/google', async (req, res) => {
         `INSERT INTO usuarios (nombre, email, rol, google_id, imagen_perfil, fecha_registro) 
          VALUES ($1, $2, $3, $4, $5, NOW())
          RETURNING id, nombre, email, rol, imagen_perfil`,
-        [nombre, email, 'USUARIO', email, foto_perfil]
+        [nombre, email, 'USER', email, foto_perfil]
       );
       usuario = result;
     } else {

@@ -25,7 +25,7 @@ export default function EventoSidebar() {
 
   const loadEvento = async () => {
     try {
-      const response = await publicAPI.get('/api/admin/evento');
+      const response = await publicAPI.get('/api/evento');
       if (response.data.success) {
         setEvento(response.data.data);
       }
