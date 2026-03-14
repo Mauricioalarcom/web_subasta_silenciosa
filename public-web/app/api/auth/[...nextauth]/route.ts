@@ -41,7 +41,7 @@ const authOptions: NextAuthOptions = {
               id: response.data.data.usuario.id.toString(),
               email: response.data.data.usuario.email,
               name: response.data.data.usuario.nombre,
-              role: response.data.data.usuario.rol || 'USUARIO',
+              role: response.data.data.usuario.rol || 'USER',
               backendToken: response.data.data.token,
             } as any;
           }
@@ -68,7 +68,7 @@ const authOptions: NextAuthOptions = {
             const backendUser = response.data.data.usuario;
             const token = response.data.data.token;
             (user as any).id = backendUser.id.toString();
-            (user as any).role = backendUser.rol || 'USUARIO';
+            (user as any).role = backendUser.rol || 'USER';
             (user as any).backendToken = token;
             return true;
           }
@@ -84,7 +84,7 @@ const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = (user as any).id || user.email;
-        token.role = (user as any).role || 'USUARIO';
+        token.role = (user as any).role || 'USER';
         token.backendToken = (user as any).backendToken;
       }
       return token;

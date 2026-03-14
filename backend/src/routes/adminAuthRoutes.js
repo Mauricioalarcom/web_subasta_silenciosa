@@ -146,6 +146,17 @@ router.post('/google', async (req, res) => {
 
     const adminData = admin.rows[0];
 
+    // Generar token JWT
+    const token = jwt.sign(
+      { 
+        userId: adminData.id, 
+        email: adminData.email,
+        rol: adminData.rol 
+      },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+
     res.json({
       success: true,
       message: 'Autenticación exitosa',
@@ -156,7 +167,8 @@ router.post('/google', async (req, res) => {
           nombre: adminData.nombre,
           rol: adminData.rol,
           imagen_perfil: adminData.imagen_perfil
-        }
+        },
+        token
       }
     });
 

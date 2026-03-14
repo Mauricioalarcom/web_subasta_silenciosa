@@ -5,14 +5,16 @@ import { publicAPI } from '@/lib/api';
 import { Calendar, MapPin, Clock, Info } from 'lucide-react';
 
 interface Evento {
+  id: string;
   nombre: string;
+  organizacion: string;
   descripcion: string;
   fecha_inicio: string;
-  fecha_fin: string;
-  ubicacion: string;
-  imagen_banner: string | null;
-  imagen_logo: string | null;
+  fecha_cierre: string;
+  logo_url: string | null;
+  banner_url: string | null;
   estado: string;
+  mensaje_bienvenida?: string;
 }
 
 export default function EventoSidebar() {
@@ -65,7 +67,7 @@ export default function EventoSidebar() {
   const getEstadoBadge = () => {
     const now = new Date();
     const inicio = new Date(evento.fecha_inicio);
-    const fin = new Date(evento.fecha_fin);
+    const cierre = new Date(evento.fecha_cierre);
 
     if (now < inicio) {
       return (
@@ -74,7 +76,7 @@ export default function EventoSidebar() {
           Próximamente
         </span>
       );
-    } else if (now >= inicio && now <= fin) {
+    } else if (now >= inicio && now <= cierre) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
           <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
@@ -93,10 +95,10 @@ export default function EventoSidebar() {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-4">
       {/* Logo o banner */}
-      {evento.imagen_logo && (
+      {evento.logo_url && (
         <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-6">
           <img
-            src={`${process.env.NEXT_PUBLIC_API_URL}${evento.imagen_logo}`}
+            src={`${process.env.NEXT_PUBLIC_API_URL}${evento.logo_url}`}
             alt={evento.nombre}
             className="w-full h-auto object-contain"
           />
@@ -136,18 +138,18 @@ export default function EventoSidebar() {
             <Calendar className="w-5 h-5 text-pink-600 flex-shrink-0" />
             <div className="text-sm">
               <p className="font-medium text-gray-900">Finalización</p>
-              <p className="text-gray-600">{formatDate(evento.fecha_fin)}</p>
+              <p className="text-gray-600">{formatDate(evento.fecha_cierre)}</p>
             </div>
           </div>
         </div>
 
         {/* Ubicación */}
-        {evento.ubicacion && (
+        {evento.organizacion && (
           <div className="flex gap-3 border-t border-gray-200 pt-4">
             <MapPin className="w-5 h-5 text-purple-600 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-gray-900">Ubicación</p>
-              <p className="text-gray-600">{evento.ubicacion}</p>
+              <p className="font-medium text-gray-900">Organizador</p>
+              <p className="text-gray-600">{evento.organizacion}</p>
             </div>
           </div>
         )}

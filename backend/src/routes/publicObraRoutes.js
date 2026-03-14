@@ -12,8 +12,8 @@ router.get('/', async (req, res, next) => {
     const { estado = 'ACTIVA', evento_id, limit = 20, offset = 0 } = req.query;
 
     let query = `
-      SELECT id, titulo, descripcion, imagen_principal, precio_base, 
-             estado, artista, evento_id, fecha_creacion
+      SELECT id, nombre, artista, descripcion, imagen_principal, precio_base, 
+             precio_actual, numero_ofertas, estado, evento_id, fecha_cierre, created_at
       FROM obras
       WHERE estado = $1
     `;
@@ -26,7 +26,7 @@ router.get('/', async (req, res, next) => {
       params.push(evento_id);
     }
 
-    query += ` ORDER BY fecha_creacion DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
+    query += ` ORDER BY created_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
     params.push(parseInt(limit));
     params.push(parseInt(offset));
 
@@ -50,8 +50,8 @@ router.get('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     const result = await db.query(
-      `SELECT id, titulo, descripcion, imagen_principal, precio_base, 
-              estado, artista, evento_id, fecha_creacion
+      `SELECT id, nombre, artista, descripcion, imagen_principal, precio_base, 
+              precio_actual, numero_ofertas, estado, evento_id, fecha_cierre, created_at
        FROM obras
        WHERE id = $1 AND estado = 'ACTIVA'`,
       [id]

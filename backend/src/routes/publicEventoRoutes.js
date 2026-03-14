@@ -9,9 +9,11 @@ const db = require('../database/db');
 router.get('/', async (req, res, next) => {
   try {
     const result = await db.query(
-      `SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, estado, imagen_banner
+      `SELECT id, nombre, organizacion, descripcion, fecha_inicio, fecha_cierre, 
+              estado, logo_url, banner_url, mensaje_bienvenida
        FROM evento
-       ORDER BY fecha_creacion DESC
+       WHERE estado = 'ACTIVO'
+       ORDER BY created_at DESC
        LIMIT 1`
     );
 
