@@ -9,16 +9,16 @@ const db = require('../database/db');
  */
 router.get('/', async (req, res, next) => {
   try {
-    const { estado = 'ACTIVA', evento_id, limit = 20, offset = 0 } = req.query;
+    const { evento_id, limit = 20, offset = 0 } = req.query;
 
     let query = `
       SELECT id, nombre, artista, descripcion, imagen_principal, precio_base, 
              precio_actual, numero_ofertas, estado, evento_id, fecha_cierre, created_at
       FROM obras
-      WHERE estado = $1
+      WHERE estado IN ('PUBLICADA', 'ACTIVA')
     `;
-    const params = [estado];
-    let paramCount = 1;
+    const params = [];
+    let paramCount = 0;
 
     if (evento_id) {
       paramCount++;
@@ -53,7 +53,7 @@ router.get('/:id', async (req, res, next) => {
       `SELECT id, nombre, artista, descripcion, imagen_principal, precio_base, 
               precio_actual, numero_ofertas, estado, evento_id, fecha_cierre, created_at
        FROM obras
-       WHERE id = $1 AND estado = 'ACTIVA'`,
+       WHERE id = $1 AND estado IN ('PUBLICADA', 'ACTIVA')`,
       [id]
     );
 

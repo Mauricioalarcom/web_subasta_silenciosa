@@ -231,7 +231,7 @@ export default function ObraDetailPage() {
   const loadObra = async () => {
     try {
       setLoading(true);
-      const response = await publicAPI.get(`/api/admin/obras/${id}`);
+      const response = await publicAPI.get(`/api/obras/${id}`);
       
       if (response.data.success) {
         setObra(response.data.data);
