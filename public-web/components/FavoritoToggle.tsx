@@ -19,16 +19,16 @@ export default function FavoritoToggle({ obraId, className = '' }: FavoritoToggl
   useEffect(() => {
     const checkFavorito = async () => {
       try {
-        const token = session?.user?.accessToken;
+        const token = (session as any)?.backendToken;
         if (!token) return;
 
-      const response = await fetch(`http://localhost:4000/api/favoritos/check/${obraId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
+        const response = await fetch(`http://localhost:4000/api/favoritos/check/${obraId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -39,7 +39,7 @@ export default function FavoritoToggle({ obraId, className = '' }: FavoritoToggl
       }
     };
 
-    if (status === 'authenticated' && session?.user?.accessToken) {
+    if (status === 'authenticated' && (session as any)?.backendToken) {
       checkFavorito();
     }
   }, [obraId, status, session]);
@@ -56,7 +56,7 @@ export default function FavoritoToggle({ obraId, className = '' }: FavoritoToggl
     setIsLoading(true);
 
     try {
-      const token = session?.user?.accessToken;
+      const token = (session as any)?.backendToken;
       if (!token) {
         toast.error('No se encontró el token de autenticación');
         return;

@@ -351,8 +351,8 @@ export default function ObraDetailPage() {
   const INCREMENTO_MINIMO = 10;
   const montoMinimo = parseFloat(obra.precio_actual.toString()) + INCREMENTO_MINIMO;
   const imagenes = obra.imagen_principal 
-    ? [obra.imagen_principal, ...obra.imagenes]
-    : obra.imagenes;
+    ? [obra.imagen_principal, ...(Array.isArray(obra.imagenes) ? obra.imagenes : [])]
+    : (Array.isArray(obra.imagenes) ? obra.imagenes : [obra.imagen_principal || '']);
 
   return (
     <ProtectedRoute>

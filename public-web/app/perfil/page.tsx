@@ -55,30 +55,30 @@ function PerfilPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = session?.user?.accessToken;
+        const token = (session as any)?.backendToken;
         if (!token) return;
 
-      // Cargar ofertas y estadísticas en paralelo
-      const [ofertasRes, statsRes] = await Promise.all([
-        fetch('http://localhost:4000/api/ofertas/mis-ofertas', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        }),
-        fetch('http://localhost:4000/api/ofertas/mis-estadisticas', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        })
-      ]);
+        // Cargar ofertas y estadísticas en paralelo
+        const [ofertasRes, statsRes] = await Promise.all([
+          fetch('http://localhost:4000/api/ofertas/mis-ofertas', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          }),
+          fetch('http://localhost:4000/api/ofertas/mis-estadisticas', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          })
+        ]);
 
-      if (ofertasRes.ok) {
-        const ofertasData = await ofertasRes.json();
-        setOfertas(ofertasData.data);
+        if (ofertasRes.ok) {
+          const ofertasData = await ofertasRes.json();
+          setOfertas(ofertasData.data);
       }
 
         if (statsRes.ok) {
@@ -93,7 +93,7 @@ function PerfilPage() {
       }
     };
 
-    if (session?.user?.accessToken) {
+    if ((session as any)?.backendToken) {
       loadData();
     }
   }, [session]);

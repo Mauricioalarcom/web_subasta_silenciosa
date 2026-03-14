@@ -50,7 +50,7 @@ router.get('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     const result = await db.query(
-      `SELECT id, nombre, artista, descripcion, imagen_principal, precio_base, 
+      `SELECT id, nombre, artista, descripcion, imagen_principal, imagenes, precio_base, 
               precio_actual, numero_ofertas, estado, evento_id, fecha_cierre, created_at
        FROM obras
        WHERE id = $1 AND estado IN ('PUBLICADA', 'ACTIVA')`,
